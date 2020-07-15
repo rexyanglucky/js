@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="./lib/fabric.js"></script>
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.0.0-beta.12/fabric.min.js"
+    integrity="sha256-nMEguzgNym8Ba7C2norc75P76Yqo169rrGKm6w8EQGc=" crossorigin="anonymous"></script> -->
+  <title>fabric.js</title>
+  <style>
+    .bg,
+    .wrap-content {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 900px;
+      height: 500px;
+      margin: auto;
+      /* transform-origin: 0 0; */
+    }
+
+    /* #c{
+      ;
+      top: 0;
+      left: 0;
+    } */
+
+    body {
+      padding: 0;
+      margin: 0;
+    }
+
+    .wrap {
+      height: 100%;
+      width: 100%;
+    }
+  </style>
+</head>
+
+<body style="background-color: cadetblue;">
+  <!-- <canvas id="c" width="70%" height="100%" style="position: fixed;"></canvas> -->
+  <div class="wrap">
+    <img src="https://q-independent.aixuexi.com/B:1027:K/1594310400/d874916547ab41e090c5f9ce97e64afd.png" class="bg"></img>
+    <div class="wrap-content"  style="border:1px solid #aaa;">
+      <canvas id="c" width="900" height="500"></canvas>
+    </div>
+    <div style="display: inline-block; margin-left: 10px">
+      <button id="drawing-mode" class="btn btn-info">Cancel drawing mode</button><br>
+      <button id="clear-canvas" class="btn btn-info">Clear</button><br>
+
+      <div id="drawing-mode-options">
+        <input type="button" id="save" value="保存" />
+        <input type="button" id="restore" value="恢复" />
+        <label for="drawing-mode-selector">Mode:</label>
+        <select id="drawing-mode-selector">
+          <option>Pencil</option>
+          <option>eraser</option>
+          <option>Circle</option>
+          <option>Spray</option>
+          <option>Pattern</option>
+
+          <option>hline</option>
+          <option>vline</option>
+          <option>square</option>
+          <option>diamond</option>
+          <option>texture</option>
+        </select><br>
+
+        <label for="drawing-line-width">Line width:</label>
+        <span class="info">5</span><input type="range" value="5" min="0" max="150" id="drawing-line-width"><br>
+
+        <label for="drawing-color">Line color:</label>
+        <input type="color" value="#005E7A" id="drawing-color"><br>
+
+        <label for="drawing-shadow-color">Shadow color:</label>
+        <input type="color" value="#005E7A" id="drawing-shadow-color"><br>
+
+        <label for="drawing-shadow-width">Shadow width:</label>
+        <span class="info">0</span><input type="range" value="0" min="0" max="50" id="drawing-shadow-width"><br>
+
+        <label for="drawing-shadow-offset">Shadow offset:</label>
+        <span class="info">0</span><input type="range" value="0" min="0" max="50" id="drawing-shadow-offset"><br>
+      </div>
+      <input type="button" id="rotate" value="旋转" onclick="rotate()" />
+      <input type="button" id="zoom" value="缩放" onclick="zoom()" />
+    </div>
+  </div>
+
+
+  <script>
+    var deg = 0;
+
+
+    (function () {
+
+      // const f = fabric.Canvas.prototype.getPointer.bind(fabric.Canvas.prototype);
+      // fabric.Canvas.prototype.getPointer = function (e, ignoreZoom) {
+      //   f(e, ignoreZoom);
+      //   console.log(11);
+      //   // pointer.x = bounds.height - pointer.x + this._offset.left;
+      //   // pointer.y = pointer.y - this._offset.top;
+      //   // pointer.y = bounds.width - pointer.y + this._offset.top
+      // }
+
+      var $ = function (id) { return document.getElementById(id) };
+
+      var canvas = this.__canvas = new fabric.Canvas('c', {
+        isDrawingMode: true,
+        centeredScaling: true,
+      });
+      // canvas.drawReact()
+      // const f = fabric.Canvas.prototype.getPointer.bind(canvas);
+      // fabric.Canvas.prototype.getPointer = function (e, ignoreZoom) {
+      //   f(e, ignoreZoom);
+      //   console.log(11);
+      //   // pointer.x = bounds.height - pointer.x + this._offset.left;
+      //   // pointer.y = pointer.y - this._offset.top;
+      //   // pointer.y = bounds.width - pointer.y + this._offset.top
+      // }
+      // fabric.Object.prototype.transparentCorners = false;
+
+      var drawingModeEl = $('drawing-mode'),
+        drawingOptionsEl = $('drawing-mode-options'),
+        drawingColorEl = $('drawing-color'),
+        drawingShadowColorEl = $('drawing-shadow-color'),
+        drawingLineWidthEl = $('drawing-line-width'),
+        drawingShadowWidth = $('drawing-shadow-width'),
+        drawingShadowOffset = $('drawing-shadow-offset'),
+        clearEl = $('clear-canvas');
+
+      clearEl.onclick = function () { canvas.clear() };
+
+      drawingModeEl.onclick = function () {
+        canvas.isDrawingMode = !canvas.isDrawingMode;
+        if (canvas.isDrawingMode) {
+          drawingModeEl.innerHTML = 'Cancel drawing mode';
+          drawingOptionsEl.style.display = '';
+        }
+        else {
+          drawingModeEl.innerHTML = 'Enter drawing mode';
+          drawingOptionsEl.style.display = 'none';
+        }
+      };
+
+      if (fabric.PatternBrush) {
+        var vLinePatternBrush = new fabric.PatternBrush(canvas);
+        vLinePatternBrush.getPatternSrc = function () {
+
+          var patternCanvas = fabric.document.createElement('canvas');
+          patternCanvas.width = patternCanvas.height = 10;
+          var ctx = patternCanvas.getContext('2d');
+
+          ctx.strokeStyle = this.color;
+          ctx.lineWidth = 5;
+          ctx.beginPath();
+          ctx.moveTo(0, 5);
+          ctx.lineTo(10, 5);
+          ctx.closePath();
+          ctx.stroke();
+
+          return patternCanvas;
+        };
+
+        var hLinePatternBrush = new fabric.PatternBrush(canvas);
+        hLinePatternBrush.getPatternSrc = function () {
+
+          var patternCanvas = fabric.document.createElement('canvas');
+          patternCanvas.width = patternCanvas.height = 10;
+          var ctx = patternCanvas.getContext('2d');
+
+          ctx.strokeStyle = this.color;
+          ctx.lineWidth = 5;
+          ctx.beginPath();
+          ctx.moveTo(5, 0);
+          ctx.lineTo(5, 10);
+          ctx.closePath();
+          ctx.stroke();
+
+          return patternCanvas;
+        };
+
+        var squarePatternBrush = new fabric.PatternBrush(canvas);
+        squarePatternBrush.getPatternSrc = function () {
+
+          var squareWidth = 10, squareDistance = 2;
+
+          var patternCanvas = fabric.document.createElement('canvas');
+          patternCanvas.width = patternCanvas.height = squareWidth + squareDistance;
+          var ctx = patternCanvas.getContext('2d');
+
+          ctx.fillStyle = this.color;
+          ctx.fillRect(0, 0, squareWidth, squareWidth);
+
+          return patternCanvas;
+        };
+
+        var diamondPatternBrush = new fabric.PatternBrush(canvas);
+        diamondPatternBrush.getPatternSrc = function () {
+
+          var squareWidth = 10, squareDistance = 5;
+          var patternCanvas = fabric.document.createElement('canvas');
+          var rect = new fabric.Rect({
+            width: squareWidth,
+            height: squareWidth,
+            angle: 45,
+            fill: this.color
+          });
+
+          var canvasWidth = rect.getBoundingRect().width;
+
+          patternCanvas.width = patternCanvas.height = canvasWidth + squareDistance;
+          rect.set({ left: canvasWidth / 2, top: canvasWidth / 2 });
+
+          var ctx = patternCanvas.getContext('2d');
+          rect.render(ctx);
+
+          return patternCanvas;
+        };
+
+        var img = new Image();
+        img.src = '../assets/honey_im_subtle.png';
+
+        var texturePatternBrush = new fabric.PatternBrush(canvas);
+        texturePatternBrush.source = img;
+      }
+
+      $('drawing-mode-selector').onchange = function () {
+        console.log(this);
+        if (this.value === 'hline') {
+          canvas.freeDrawingBrush = vLinePatternBrush;
+        }
+        else if (this.value === 'vline') {
+          canvas.freeDrawingBrush = hLinePatternBrush;
+        }
+        else if (this.value === 'square') {
+          canvas.freeDrawingBrush = squarePatternBrush;
+        }
+        else if (this.value === 'diamond') {
+          canvas.freeDrawingBrush = diamondPatternBrush;
+        }
+        else if (this.value === 'texture') {
+          canvas.freeDrawingBrush = texturePatternBrush;
+        }
+        else if (this.value === 'eraser') {
+          canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
+          canvas.freeDrawingBrush.id = 'eraser';
+          canvas.freeDrawingBrush.lockMovementX = true;
+          canvas.freeDrawingBrush.lockMovementY = true;
+          canvas.freeDrawingBrush.globalCompositeOperation = 'destination-out';
+          // canvas.globalCompositeOperation = 'destination-over';
+        }
+        else {
+          canvas.freeDrawingBrush = new fabric[this.value + 'Brush'](canvas);
+        }
+
+        if (canvas.freeDrawingBrush) {
+          canvas.freeDrawingBrush.color = drawingColorEl.value;
+          canvas.freeDrawingBrush.width = parseInt(drawingLineWidthEl.value, 10) || 1;
+          canvas.freeDrawingBrush.shadow = new fabric.Shadow({
+            blur: parseInt(drawingShadowWidth.value, 10) || 0,
+            offsetX: 0,
+            offsetY: 0,
+            affectStroke: true,
+            color: drawingShadowColorEl.value,
+          });
+        }
+      };
+      $('save').onclick = function () {
+        localStorage.setItem('tjson', JSON.stringify(canvas.toJSON()));
+        localStorage.setItem('tsvg', canvas.toSVG());
+      }
+      $('restore').onclick = function () {
+        var s = localStorage.getItem('tsvg');
+        var j = localStorage.getItem('tjson');
+        canvas.loadFromJSON(j, function (objects, options) {
+          console.log(objects);
+          canvas.renderAll();
+        });
+        // function restoreSketch(imageSVG) {
+        // fabric.loadSVGFromString(s, function (objects, options) {
+        //   // console.log(objects);
+        //   [].slice.call(objects).forEach((value, index) => {
+        //     if (value.id && value.id == 'eraser') {
+        //       console.log(111,value)
+        //       value.set({
+        //         globalCompositeOperation: 'destination-out'
+        //       }); //set gCO for value
+        //     }
+        //   });
+        //   var obj = fabric.util.groupSVGElements(objects, options);
+        //   canvas.add(obj).renderAll();
+        // });
+      }
+      $('rotate').onclick = function () {
+        deg += 90;
+        if (deg >= 360) {
+          deg = 0;
+        }
+        const angle = deg * Math.PI / 180
+        console.log(canvas);
+        // console.log(fabric.Object.viewportCenter());
+        // document.querySelector('.bg').style.transformOrigin = '0 0';
+        // document.querySelector('.wrap-content').style.transformOrigin = '0 0';
+
+        document.querySelector('.bg').style.transform = `rotate(${deg}deg)`;
+        // document.querySelector('.canvas-container').style.transform = `rotate(${deg}deg)`;
+        document.querySelector('.wrap-content').style.transform = `rotate(${deg}deg)`;
+        // document.querySelector('.wrap-content').style.transformOrigin = `rotate(${deg}deg)`;
+
+
+
+        console.log(canvas.viewportTransform);
+        const cosVal = parseInt(Math.cos(deg * Math.PI / 180).toFixed(6), 10);
+        const sinVal = parseInt(Math.sin(deg * Math.PI / 180), 10);
+        // canvas.setViewportTransform([cosVal, sinVal, -sinVal, cosVal, 450, 250]);
+        // const c = canvas.getContext().rotate(deg);
+        // console.log(c);
+        console.log(canvas.viewportTransform);
+        
+        // canvas.setDimensions({transform: `rotate(${deg / 2}deg)`}, {cssOnly: true});
+        // canvas.rotate(deg);
+        // console.log(fabric.getCenterPoint());
+        // const ctx1 = canvas.lowerCanvasEl.getContext('2d');
+        // const ctx2 = canvas.upperCanvasEl.getContext('2d');
+        // ctx1.restore();
+        // ctx2.restore();
+        // const cx =450,cy=250;
+        // ctx1.save();
+        // ctx2.save();
+        // ctx1.translate(-cx, -cy);
+        // ctx2.translate(-cx, -cy);
+        // console.log(deg);
+
+        // ctx1.rotate(deg * Math.PI / 180);
+        // ctx2.rotate(deg * Math.PI / 180);
+        
+        // ctx1.fillRect(70,0,100,30);
+        // ctx2.fillRect(70,0,100,30);
+        // ctx1.setTransform(1, 0, 0, 1, 0, 0);
+        // ctx2.setTransform(1, 0, 0, 1, 0, 0);
+
+        // ctx1.translate(cx, cy);
+        // ctx2.translate(cx, cy);
+        // ctx1.transform(cosVal, sinVal, -sinVal, cosVal, cx, cy);
+        // ctx2.transform(cosVal, sinVal, -sinVal, cosVal, cx, cy);
+        console.log(canvas.viewportTransform);
+
+        // canvas.requestRenderAll();
+
+        
+
+        // canvas.upperCanvasEl.style.transform = `rotate(${deg}deg)`;
+
+        // document.querySelector('.canvas-container').style.transform = `rotate(${deg}deg)`;
+        // canvas.getContext('2d').rotate(deg * Math.PI / 2);
+        // ctx.rotate(45 * Math.PI / 180)
+      }
+      $('zoom').onclick = function () {
+        canvas.setWidth(900);
+        canvas.setHeight(900);
+        const img = document.querySelector('.bg');
+        img.style.height = `${900}px`;
+        img.style.width = `${900}px`;
+        const content = document.querySelector('.wrap-content');
+        content.style.height = `${900}px`;
+        content.style.width = `${900}px`;
+        canvas.setZoom(2);
+        // document.querySelector('.bg').style.transform = `scale(2)`;
+        // document.querySelector('.bg').style.transformOrigin = '0 0';
+
+        // canvas.zoomToPoint(new fabric.Point(375, 375), 2);
+        // console.log(canvas.getVpCenter());
+      }
+      drawingColorEl.onchange = function () {
+        canvas.freeDrawingBrush.color = this.value;
+      };
+      drawingShadowColorEl.onchange = function () {
+        canvas.freeDrawingBrush.shadow.color = this.value;
+      };
+      drawingLineWidthEl.onchange = function () {
+        canvas.freeDrawingBrush.width = parseInt(this.value, 10) || 1;
+        this.previousSibling.innerHTML = this.value;
+      };
+      drawingShadowWidth.onchange = function () {
+        canvas.freeDrawingBrush.shadow.blur = parseInt(this.value, 10) || 0;
+        this.previousSibling.innerHTML = this.value;
+      };
+      drawingShadowOffset.onchange = function () {
+        canvas.freeDrawingBrush.shadow.offsetX = parseInt(this.value, 10) || 0;
+        canvas.freeDrawingBrush.shadow.offsetY = parseInt(this.value, 10) || 0;
+        this.previousSibling.innerHTML = this.value;
+      };
+
+      if (canvas.freeDrawingBrush) {
+        canvas.freeDrawingBrush.color = drawingColorEl.value;
+        canvas.freeDrawingBrush.width = parseInt(drawingLineWidthEl.value, 10) || 1;
+        canvas.freeDrawingBrush.shadow = new fabric.Shadow({
+          blur: parseInt(drawingShadowWidth.value, 10) || 0,
+          offsetX: 0,
+          offsetY: 0,
+          affectStroke: true,
+          color: drawingShadowColorEl.value,
+        });
+      }
+    })();
+  </script>
+</body>
+
+</html>

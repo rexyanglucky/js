@@ -1,0 +1,62 @@
+<html>
+
+<head>
+  <title>Canvas tutorial</title>
+
+  <style type="text/css">
+    canvas {
+      border: 1px solid black;
+    }
+
+    .bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: -1;
+    }
+
+    body {
+      padding: 0;
+      margin: 0;
+    }
+  </style>
+</head>
+
+<body onload="draw();">
+  <img src="./assets/images/list.jpg" style="width: 500px;height:500px;" class="bg"></img>
+  <canvas id="tutorial" width="500" height="500"></canvas>
+  <input type="button" id="rotate" value="旋转" onclick="rotate()" />
+
+  <script type="text/javascript">
+   var ctx = canvas.getContext('2d');
+
+    var deg = 0;
+    function draw() {
+      var canvas = document.getElementById('tutorial');
+      if (canvas.getContext) {
+        ctx = canvas.getContext('2d');
+        ctx.fillRect(70,0,100,30);
+      }
+    }
+
+    (function () {
+      var $ = function (id) { return document.getElementById(id) };
+      $('tutorial').addEventListener('click', function (event) {
+        console.log(event);
+      });
+      $('rotate').onclick = function () {
+      deg += 90;
+      if (deg >= 360) {
+        deg = 0;
+      }
+   
+        // ctx2.fillRect(70,0,100,30);
+      document.querySelector('.bg').style.transform = `rotate(${deg}deg)`;
+      $('tutorial').style.transform = `rotate(${deg}deg)`;
+    }
+    })()
+  
+  </script>
+</body>
+
+</html>
