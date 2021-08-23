@@ -24,6 +24,23 @@ function findIndex(arr, target) {
 }
 console.log(findIndex(sortAry, 1100));
 
+function binarySearch(nums, target) {
+  let left = 0, right = nums.length;
+  while(left < right) {
+    let mid = (left + right) >> 1; 
+    console.log(left, right,mid);
+    if (nums[mid] < target) {
+      left = mid + 1;
+    } else if (nums[mid] > target) {
+      right = mid - 1;
+    } else {
+      return mid;
+    }
+  }
+  return -1;
+}
+
+
 
 // const multiArr = [0, [1, 4,], 7, [9, 20, [22,[25], 23]], 100];
 // function flat(arr) {
