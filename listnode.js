@@ -1,4 +1,12 @@
+/**
+ * @description 链表
+ */
 
+/**
+ * 根据数组生成链表
+ * @param arr
+ * @returns {null}
+ */
 function genListNode(arr) {
   var t = null;
   var tail = null;
