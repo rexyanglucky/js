@@ -38,6 +38,19 @@
 //     }
 //   }
 // }
+// function multipy(f) {
+//   let result = f;
+//   const fn = (x) => {
+//     if (x) {
+//       result = result + x;
+//       return fn;
+//     } else {
+//       return result;
+//     }
+//   };
+//   return fn;
+// }
+
 // // 简单实现，参数只能从右到左传递
 // function createCurry(func, args) {
 //   var arity = func.length;

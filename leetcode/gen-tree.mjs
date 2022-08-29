@@ -62,6 +62,8 @@ function genBinaryTree1(arrs) {
 const node1 = genTree(0, [1, 2, 3, 4, 5, 6], 0, 2);
 const node2 = genBinaryTree(0, 0, 5);
 const node3 = genBinaryTree1(new Array(63).fill(undefined));
+const node4 = genBinaryTree1([1,2,3,null,null,4,5]);
+console.log(node4);
 export default {
   genTree,
   genBinaryTree,
